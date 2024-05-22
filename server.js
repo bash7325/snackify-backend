@@ -50,7 +50,12 @@ db.serialize(() => {
 // Middleware
 app.use(bodyParser.json());
 
-  // Allows all origins (not recommended for production)
+app.options('*', cors()); // Enable pre-flight requests
+app.use(cors({
+  origin: 'https://production.d3wunp31todap.amplifyapp.com', // Your Angular app's URL on Amplify
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // Routes
 // Registration Route
