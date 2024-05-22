@@ -46,10 +46,11 @@ db.serialize(() => {
 });
 
 // Middleware
-app.use(cors({
-  origin: 'https://production.d3wunp31todap.amplifyapp.com/', // Replace with your Angular app's domain
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],   // Specify the allowed HTTP methods
-  allowedHeaders: ['Content-Type', 'Authorization'] // Specify allowed headers
+// Before other app.use and app.get/post calls...
+app.options('*', cors({
+  origin: 'https://production.d3wunp31todap.amplifyapp.com',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(bodyParser.json());
 
