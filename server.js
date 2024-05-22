@@ -49,7 +49,7 @@ db.serialize(() => {
 // Middleware
 app.use(bodyParser.json());
 
-app.use(cors());  // Allows all origins (not recommended for production)
+//app.use(cors());  // Allows all origins (not recommended for production)
 
 // Routes
 // Registration Route
