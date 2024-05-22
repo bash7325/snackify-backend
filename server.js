@@ -6,7 +6,7 @@ const bcrypt = require('bcrypt'); // For password hashing
 
 const app = express();
 app.use(cors());
-const port = 3000;
+const port = process.env.PORT || 3000; 
 const allowedOrigins = ['https://production.d3wunp31todap.amplifyapp.com'];
 
 // Database Setup
