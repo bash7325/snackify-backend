@@ -46,7 +46,11 @@ db.serialize(() => {
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: 'https://production.d3wunp31todap.amplifyapp.com/', // Replace with your Angular app's domain
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],   // Specify the allowed HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization'] // Specify allowed headers
+}));
 app.use(bodyParser.json());
 
 // Routes
