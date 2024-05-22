@@ -62,7 +62,11 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.options('*', cors()); 
+app.options('/api/login', cors(), (req, res) => {
+  console.log('OPTIONS request for /api/login'); // This should log now
+  res.sendStatus(200);
+});
+
 
 app.use(bodyParser.json());
 
