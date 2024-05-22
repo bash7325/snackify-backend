@@ -48,12 +48,22 @@ db.serialize(() => {
 });
 
 // Middleware
-app.options('*', cors()); // Enable pre-flight requests
 app.use(cors({
-  origin: 'https://production.d3wunp31todap.amplifyapp.com', // Your Angular app's URL on Amplify
+  origin: function (origin, callback) {
+    // Check if origin is allowed or if it's a preflight request
+    console.log('Origin received:', origin); // Add this log statement
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+app.options('*', cors()); 
+
 app.use(bodyParser.json());
 
 
