@@ -48,6 +48,10 @@ db.serialize(() => {
 
 // Middleware
 app.use(bodyParser.json());
+app.options('*', (req, res) => {
+  res.sendStatus(200); // Respond with 200 OK to allow the request
+});
+
 
 //app.use(cors());  // Allows all origins (not recommended for production)
 
