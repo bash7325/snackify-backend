@@ -6,6 +6,7 @@ const bcrypt = require('bcrypt'); // For password hashing
 
 const app = express();
 const port = 3000;
+const allowedOrigins = ['https://production.d3wunp31todap.amplifyapp.com'];
 
 // Database Setup
 const db = new sqlite3.Database('snack_requests.db', (err) => {
