@@ -6,7 +6,6 @@ const bcrypt = require('bcrypt'); // For password hashing
 
 const app = express();
 const port = 3000;
-const allowedOrigins = ['https://production.d3wunp31todap.amplifyapp.com'];
 
 // Database Setup
 const db = new sqlite3.Database('snack_requests.db', (err) => {
@@ -53,7 +52,21 @@ app.options('*', (req, res) => {
 });
 
 
-//app.use(cors());  // Allows all origins (not recommended for production)
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*")
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested, Content-Type, Accept Authorization"
+  )
+  if (req.method === "OPTIONS") {
+    res.header(
+      "Access-Control-Allow-Methods",
+      "POST, PUT, PATCH, GET, DELETE"
+    )
+    return res.status(200).json({})
+  }
+  next()
+})
 
 // Routes
 // Registration Route
