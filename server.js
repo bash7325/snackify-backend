@@ -49,24 +49,7 @@ db.serialize(() => {
 // Middleware
 app.use(bodyParser.json());
 
-app.use(cors({
-  origin: function (origin, callback) {
-    // Check if origin is allowed or if it's a preflight request
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
-app.options('*', cors());  // Enable CORS pre-flight for all routes
-
-// ... (your routes)
-
-
+app.use(cors());  // Allows all origins (not recommended for production)
 
 // Routes
 // Registration Route
