@@ -46,13 +46,24 @@ db.serialize(() => {
 });
 
 // Middleware
-// Before other app.use and app.get/post calls...
-app.options('*', cors({
-  origin: 'https://production.d3wunp31todap.amplifyapp.com',
+app.use(bodyParser.json());
+// Conditional CORS middleware
+app.use(cors({
+  origin: function (origin, callback) {
+    // Check if origin is allowed
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(bodyParser.json());
+
+// ... (your routes)
+
+
 
 // Routes
 // Registration Route
@@ -220,6 +231,7 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
+app.options('*', cors()); 
 
 app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
