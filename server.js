@@ -90,9 +90,7 @@ app.options('/api/login', cors(), (req, res) => {
   res.sendStatus(200);
 });
 
-
 app.use(bodyParser.json());
-
 
 // Routes
 // Registration Route
@@ -129,102 +127,6 @@ app.post('/api/register', async (req, res) => {
     client.release();
   }
 });
-
-
-
-// ... your imports ... 
-
-const app = express();
-const port = process.env.PORT || 3000;
-const allowedOrigins = ['https://production.d3wunp31todap.amplifyapp.com'];
-
-// Database Setup (PostgreSQL)
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
-});
-
-pool.on('error', (err, client) => {
-  console.error('Unexpected error on idle client', err);
-  process.exit(-1);
-});
-
-// Test database connection
-(async () => {
-  const client = await pool.connect();
-  try {
-    const result = await client.query('SELECT NOW()');
-    console.log('Connected to PostgreSQL database:', result.rows[0]);
-  } catch (err) {
-    console.error('Error connecting to PostgreSQL database:', err);
-  } finally {
-    client.release();
-  }
-})();
-
-// Create Tables (Async/Await Version)
-async function createTables() {
-  const client = await pool.connect();
-  try {
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        username TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL,
-        role TEXT DEFAULT 'user',
-        name TEXT NOT NULL
-      );
-    `);
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS snack_requests (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id),
-        snack TEXT,
-        drink TEXT,
-        misc TEXT,
-        link TEXT,
-        ordered_flag INTEGER DEFAULT 0,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        ordered_at TIMESTAMP DEFAULT NULL,
-        keep_on_hand INTEGER DEFAULT 0
-      );
-    `);
-    console.log('Tables created or already exist');
-  } catch (err) {
-    console.error('Error creating tables:', err);
-  } finally {
-    client.release();
-  }
-}
-
-createTables(); // Call the function to create tables
-
-// Middleware
-app.use(bodyParser.json());
-// Conditional CORS middleware
-app.use(cors({
-  origin: function (origin, callback) {
-    // Check if origin is allowed or if it's a preflight request
-    console.log('Origin received:', origin);
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
-app.options('/api/login', cors(), (req, res) => {
-  console.log('OPTIONS request for /api/login'); 
-  res.sendStatus(200);
-});
-
-
-// Routes
-
-// ... (your other routes, register, login) ...
 
 app.get('/api/requests', async (req, res) => { // Use async here
   const client = await pool.connect();
