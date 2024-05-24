@@ -164,6 +164,31 @@ app.get('/api/requests/user/:userId', async (req, res) => {
   }
 });
 
+app.post('/api/requests', async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { user_id, snack, drink, misc, link } = req.body;
+
+    const result = await client.query(
+      'INSERT INTO snack_requests (user_id, snack, drink, misc, link, created_at) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP) RETURNING *',
+      [user_id, snack, drink, misc, link] // Removed ordered_at
+    );
+
+    if (result.rowCount > 0) {
+      console.log('Successfully inserted snack request:', result.rows[0]);
+      res.status(201).json({ message: 'Snack request created successfully', request: result.rows[0] });
+    } else {
+      console.error('No rows were inserted.');
+      res.status(500).json({ error: 'Failed to create snack request' });
+    }
+  } catch (err) {
+    console.error('Error creating request:', err.stack);
+    res.status(500).json({ error: 'Failed to create snack request' });
+  } finally {
+    client.release();
+  }
+});
+
 
 app.put('/api/requests/:id/order', async (req, res) => {
   const client = await pool.connect();
