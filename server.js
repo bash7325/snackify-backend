@@ -1,7 +1,8 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const sqlite3 = require('sqlite3').verbose();
+const { Pool } = require('pg'); // PostgreSQL driver
 const bcrypt = require('bcrypt'); // For password hashing
 
 const app = express();
@@ -9,44 +10,66 @@ app.use(cors());
 const port = process.env.PORT || 3000; 
 const allowedOrigins = ['https://production.d3wunp31todap.amplifyapp.com'];
 
-// Database Setup
-const db = new sqlite3.Database('snack_requests.db', (err) => {
-    if (err) {
-        console.error(err.message);
-    }
-    console.log('Connected to the snack_requests database.');
+// Database Setup (PostgreSQL)
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL, // Heroku will provide this
+  ssl: { rejectUnauthorized: false }  // Add this line to disable SSL checks for local development
 });
 
-db.serialize(() => {
+pool.on('error', (err, client) => {
+  console.error('Unexpected error on idle client', err);
+  process.exit(-1);
+});
 
-    // Create the users table
-    db.run(`
+// Test database connection
+(async () => {
+  const client = await pool.connect();
+  try {
+    const result = await client.query('SELECT NOW()');
+    console.log('Connected to PostgreSQL database:', result.rows[0]);
+  } catch (err) {
+    console.error('Error connecting to PostgreSQL database:', err);
+  } finally {
+    client.release(); // Release the connection
+  }
+})();
+
+// Create Tables (Async/Await Version)
+async function createTables() {
+  const client = await pool.connect();
+  try {
+    await client.query(`
       CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         username TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
-        role TEXT DEFAULT 'user', 
+        role TEXT DEFAULT 'user',
         name TEXT NOT NULL
-      )
+      );
     `);
-
-    // Create the snack_requests table
-    db.run(`
-    CREATE TABLE IF NOT EXISTS snack_requests (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER, 
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS snack_requests (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id),
         snack TEXT,
         drink TEXT,
         misc TEXT,
         link TEXT,
         ordered_flag INTEGER DEFAULT 0,
-        created_at TEXT,
-        ordered_at TEXT,
-        keep_on_hand INTEGER DEFAULT 0, 
-        FOREIGN KEY (user_id) REFERENCES users(id)
-    )
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Use TIMESTAMP for dates
+        ordered_at TIMESTAMP DEFAULT NULL,
+        keep_on_hand INTEGER DEFAULT 0
+      );
     `);
-});
+    console.log('Tables created or already exist');
+  } catch (err) {
+    console.error('Error creating tables:', err);
+  } finally {
+    client.release(); // Release the connection
+  }
+}
+
+createTables(); // Call the function to create tables
 
 // Middleware
 app.use(cors({
