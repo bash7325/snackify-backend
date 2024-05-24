@@ -2,18 +2,17 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const { Pool } = require('pg'); // PostgreSQL driver
-const bcrypt = require('bcrypt'); // For password hashing
+const { Pool } = require('pg');
+const bcrypt = require('bcrypt');
 
 const app = express();
-app.use(cors());
-const port = process.env.PORT || 3000; 
+const port = process.env.PORT || 3000;
 const allowedOrigins = ['https://production.d3wunp31todap.amplifyapp.com'];
 
-// Database Setup (PostgreSQL)
+// Database Setup (PostgreSQL) - Moved outside any functions
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL, // Heroku will provide this
-  ssl: { rejectUnauthorized: false }  // Add this line to disable SSL checks for local development
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false } // for local development
 });
 
 pool.on('error', (err, client) => {
@@ -21,7 +20,7 @@ pool.on('error', (err, client) => {
   process.exit(-1);
 });
 
-// Test database connection
+// Test database connection (Ensure this is outside of the db.serialize block)
 (async () => {
   const client = await pool.connect();
   try {
@@ -34,7 +33,7 @@ pool.on('error', (err, client) => {
   }
 })();
 
-// Create Tables (Async/Await Version)
+// Create Tables (Async/Await Version) - Moved outside of the db.serialize block
 async function createTables() {
   const client = await pool.connect();
   try {
@@ -56,7 +55,7 @@ async function createTables() {
         misc TEXT,
         link TEXT,
         ordered_flag INTEGER DEFAULT 0,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Use TIMESTAMP for dates
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         ordered_at TIMESTAMP DEFAULT NULL,
         keep_on_hand INTEGER DEFAULT 0
       );
@@ -65,7 +64,7 @@ async function createTables() {
   } catch (err) {
     console.error('Error creating tables:', err);
   } finally {
-    client.release(); // Release the connection
+    client.release();
   }
 }
 
