@@ -171,33 +171,23 @@ db.all('SELECT * FROM snack_requests WHERE user_id = ? ORDER BY created_at desc'
 
 
 app.post('/api/requests', async (req, res) => {
-try {
+  const client = await pool.connect();
+  try {
     const { user_id, snack, drink, misc, link } = req.body;
     console.log('Received snack request:', req.body);
 
-    const result = await db.run(
-      'INSERT INTO snack_requests (user_id, snack, drink, misc, link, created_at) VALUES (?, ?, ?, ?, ?, datetime("now", "localtime"))',
-        [user_id, snack, drink, misc, link],
-        function (err) {
-            if (err) {
-                console.error('Error creating request:', err.message);
-                res.status(500).json({ error: 'Failed to create snack request' });
-            } else {
-                res.status(201).json({
-                    id: this.lastID, 
-                    user_id,
-                    snack, 
-                    drink, 
-                    misc, 
-                    link 
-                });
-            }
-        }
+    const result = await client.query(
+      'INSERT INTO snack_requests (user_id, snack, drink, misc, link, created_at) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP) RETURNING *', 
+      [user_id, snack, drink, misc, link]
     );
-} catch (err) {
-    console.error(err.message);
+    res.status(201).json(result.rows[0]); 
+
+  } catch (err) {
+    console.error('Error creating request:', err.stack); 
     res.status(500).json({ error: 'Failed to create snack request' });
-}
+  } finally {
+    client.release();
+  }
 });
 
 
